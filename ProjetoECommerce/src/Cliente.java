@@ -4,7 +4,6 @@ public class Cliente {
     private String email;
 
     public Cliente(String nome, String documento, String email) throws IllegalAccessException {
-
         if (documento == null || documento.isBlank()) {
             throw new IllegalArgumentException("Documento é obrigatório");
         }
