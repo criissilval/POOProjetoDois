@@ -10,7 +10,6 @@ public class Main {
         clienteRepositorio.listar().forEach(System.out::println);
 
         // Repositório de produtos
-
         RepositorioProduto produtoRepositorio = new RepositorioProduto();
         produtoRepositorio.cadastrar(new Produtos(1, "Notebook", 1000.00));
         produtoRepositorio.cadastrar(new Produtos(2, "Mouse", 80.00));
