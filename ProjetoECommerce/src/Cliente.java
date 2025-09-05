@@ -29,11 +29,8 @@ public class Cliente {
 
     @Override
     public String toString() {
-        return "Cliente{" +
-                "documento ='" + documento + '\'' +
-                ", nome ='" + nome + '\'' +
-                ", email ='" + email + '\'' +
-                '}';
+        return String.format("Cliente | Nome: %s | Documento: %s | E-mail: %s", nome, documento, email);
+
     }
 
 }

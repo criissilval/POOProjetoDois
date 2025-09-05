@@ -47,13 +47,11 @@ public class ItemPedido {
 
     @Override
     public String toString() {
-        return "ItemPedido{" +
-                "produtoID=" + produto.getId() +
-                ", produtoNome='" + produto.getNome() + '\'' +
-                ", quantidade=" + quantidade +
-                ", valorTotal=" + precoVenda +
-                ", subTotal=" + getSubTotal() +
-                '}';
+        return String.format(
+                "Item | Produto: %s (ID %d) | Qtd: %d | Preço venda: R$ %.2f | Subtotal: R$ %.2f",
+                produto.getNome(), produto.getId(), quantidade, precoVenda, getSubTotal()
+        );
+
     }
     @Override
     public boolean equals(Object obj){

@@ -13,12 +13,11 @@ public class Pedido {
     private StatusPagamento statusPagamento;
     private List<ItemPedido> itens = new ArrayList<>();
 
-    public Pedido(int id, Cliente cliente, LocalDateTime dataCriacao, Email email, StatusPedido statusPedido, StatusPagamento statusPagamento) {
+    public Pedido(int id, Cliente cliente, Email email) {
         if (cliente == null){throw new IllegalArgumentException("Cliente é obrigatório");}
         if (email == null){throw new IllegalArgumentException("Email é obrigatório");}
         this.id = id;
         this.cliente = cliente;
-        this.dataCriacao = dataCriacao;
         this.email = email;
         this.dataCriacao = LocalDateTime.now();
         this.statusPedido = statusPedido.ABERTO;
@@ -33,9 +32,6 @@ public class Pedido {
     }
     public Cliente getCliente(){
         return cliente;
-    }
-    public LocalDateTime getDataCriacao(){
-        return dataCriacao;
     }
     public StatusPedido getStatusPedido(){
         return statusPedido;
@@ -91,6 +87,15 @@ public class Pedido {
         statusPagamento = StatusPagamento.AGUARDANDO_PAGAMENTO;
         email.notificarAguardandoPagamento(cliente, this);
     }
+    public void pagar(){
+        if (statusPedido != StatusPedido.AGUARDANDO_PAGAMENTO){
+            throw new IllegalStateException("Pagamento permitido apenas quando o pedido está AGUARDANDO_PAGAMENTO.");
+        }
+        statusPagamento = StatusPagamento.PAGO;
+        statusPedido = StatusPedido.PAGO;
+        email.notificarPagamentoAprovado(cliente, this);
+    }
+
 
     public void entregar(){
         if (statusPagamento != StatusPagamento.PAGO){
@@ -108,14 +113,25 @@ public class Pedido {
 
     @Override
     public String toString() {
-        return "Pedido{" +
-                "id=" + id +
-                ", cliente=" + cliente +
-                ", dataCriacao=" + dataCriacao +
-                ", statusPedido=" + statusPedido +
-                ", statusPagamento=" + statusPagamento +
-                ", total=" + getTotal() +
-                ", itens=" + itens +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n===== Pedido #").append(id).append(" =====\n");
+        sb.append(String.format("Cliente: %s | Documento: %s | E-mail: %s%n",
+                cliente.getNome(), cliente.getDocumento(), cliente.getEmail()));
+        sb.append(String.format("Data: %s%n", dataCriacao));
+        sb.append(String.format("Status Pedido: %s | Status Pagamento: %s%n",
+                statusPedido, statusPagamento));
+
+        sb.append("Itens:\n");
+        if (itens.isEmpty()) {
+            sb.append("  (sem itens)\n");
+        } else {
+            for (ItemPedido item : itens) {
+                sb.append("  - ").append(item.toString()).append("\n");
+            }
+        }
+        sb.append(String.format("Total: R$ %.2f%n", getTotal()));
+        sb.append("=========================\n");
+        return sb.toString();
     }
+
 }
