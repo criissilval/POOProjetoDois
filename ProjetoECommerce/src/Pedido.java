@@ -114,24 +114,40 @@ public class Pedido {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n===== Pedido #").append(id).append(" =====\n");
-        sb.append(String.format("Cliente: %s | Documento: %s | E-mail: %s%n",
-                cliente.getNome(), cliente.getDocumento(), cliente.getEmail()));
-        sb.append(String.format("Data: %s%n", dataCriacao));
-        sb.append(String.format("Status Pedido: %s | Status Pagamento: %s%n",
-                statusPedido, statusPagamento));
+        sb.append(String.format("%s===== Pedido #%d =====%s%n",
+                ConsoleColors.BRIGHT_BLUE, id, ConsoleColors.RESET));
 
-        sb.append("Itens:\n");
+        sb.append(String.format("%sCliente:%s %s | %sDoc:%s %s | %sE-mail:%s %s%n",
+                ConsoleColors.CYAN, ConsoleColors.RESET,
+                cliente.getNome(),
+                ConsoleColors.DIM, ConsoleColors.RESET, cliente.getDocumento(),
+                ConsoleColors.DIM, ConsoleColors.RESET, cliente.getEmail()
+        ));
+
+        sb.append(String.format("%sData:%s %s%n",
+                ConsoleColors.CYAN, ConsoleColors.RESET, dataCriacao));
+
+        sb.append(String.format("%sStatus Pedido:%s %s | %sStatus Pagamento:%s %s%n",
+                ConsoleColors.CYAN, ConsoleColors.RESET, statusPedido,
+                ConsoleColors.CYAN, ConsoleColors.RESET, statusPagamento
+        ));
+
+        sb.append(String.format("%sItens:%s%n", ConsoleColors.BRIGHT_WHITE, ConsoleColors.RESET));
         if (itens.isEmpty()) {
-            sb.append("  (sem itens)\n");
+            sb.append(String.format("  %s(sem itens)%s%n", ConsoleColors.DIM, ConsoleColors.RESET));
         } else {
             for (ItemPedido item : itens) {
                 sb.append("  - ").append(item.toString()).append("\n");
             }
         }
-        sb.append(String.format("Total: R$ %.2f%n", getTotal()));
-        sb.append("=========================\n");
-        return sb.toString();
+
+        sb.append(String.format("%sTotal:%s %sR$ %.2f%s%n",
+                ConsoleColors.BRIGHT_WHITE, ConsoleColors.RESET,
+                ConsoleColors.BRIGHT_GREEN, getTotal(), ConsoleColors.RESET));
+
+        sb.append(String.format("%s=========================%s%n", ConsoleColors.BRIGHT_BLUE, ConsoleColors.RESET));
+        return ConsoleColors.clean(sb.toString());
     }
+
 
 }

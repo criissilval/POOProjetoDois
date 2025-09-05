@@ -47,12 +47,18 @@ public class ItemPedido {
 
     @Override
     public String toString() {
-        return String.format(
-                "Item | Produto: %s (ID %d) | Qtd: %d | Preço venda: R$ %.2f | Subtotal: R$ %.2f",
-                produto.getNome(), produto.getId(), quantidade, precoVenda, getSubTotal()
+        String s = String.format(
+                "%sItem%s | Produto: %s%s%s (ID %s%d%s) | Qtd: %s%d%s | Preço venda: %sR$ %.2f%s | Subtotal: %sR$ %.2f%s",
+                ConsoleColors.BRIGHT_WHITE, ConsoleColors.RESET,
+                ConsoleColors.BRIGHT_YELLOW, produto.getNome(), ConsoleColors.RESET,
+                ConsoleColors.DIM, produto.getId(), ConsoleColors.RESET,
+                ConsoleColors.CYAN, quantidade, ConsoleColors.RESET,
+                ConsoleColors.GREEN, precoVenda, ConsoleColors.RESET,
+                ConsoleColors.BRIGHT_GREEN, getSubTotal(), ConsoleColors.RESET
         );
-
+        return ConsoleColors.clean(s);
     }
+
     @Override
     public boolean equals(Object obj){
         if (this == obj) return true;

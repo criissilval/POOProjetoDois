@@ -21,7 +21,14 @@ public class Produtos {
 
     @Override
     public String toString() {
-        return String.format("Produto #%d | Nome: %s | Preço: R$ %.2f", id, nome, preco);
-
+        String s = String.format(
+                "%sProduto%s #%d %s|%s Nome: %s %s|%s Preço: %sR$ %.2f%s",
+                ConsoleColors.CYAN, ConsoleColors.RESET, id,
+                ConsoleColors.DIM, ConsoleColors.RESET, nome,
+                ConsoleColors.DIM, ConsoleColors.RESET,
+                ConsoleColors.GREEN, preco, ConsoleColors.RESET
+        );
+        return ConsoleColors.clean(s);
     }
+
 }

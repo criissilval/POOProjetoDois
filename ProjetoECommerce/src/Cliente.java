@@ -29,8 +29,15 @@ public class Cliente {
 
     @Override
     public String toString() {
-        return String.format("Cliente | Nome: %s | Documento: %s | E-mail: %s", nome, documento, email);
-
+        String s = String.format(
+                "%sCliente%s | Nome: %s%s%s | Documento: %s%s%s | E-mail: %s%s%s",
+                ConsoleColors.BRIGHT_CYAN, ConsoleColors.RESET,
+                ConsoleColors.YELLOW, nome, ConsoleColors.RESET,
+                ConsoleColors.MAGENTA, documento, ConsoleColors.RESET,
+                ConsoleColors.BLUE, email, ConsoleColors.RESET
+        );
+        return ConsoleColors.clean(s);
     }
+
 
 }
