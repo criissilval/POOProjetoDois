@@ -45,7 +45,7 @@ public class Pedido {
 
     //ação de itens
 
-    public void adicionarItem(Produtos produto, int quantidade, double precoVenda){
+    public void adicionarItem(Produto produto, int quantidade, double precoVenda){
         validarEstadoAberto();
         ItemPedido novo = new ItemPedido(produto, quantidade, precoVenda);
         int idx = itens.indexOf(novo);
@@ -58,11 +58,11 @@ public class Pedido {
         }
 
     }
-    public void removerItem(Produtos produto){
+    public void removerItem(Produto produto){
         validarEstadoAberto();
         itens.removeIf(ip -> ip.getProduto().getId() == produto.getId());
     }
-    public void alterarQuantidadeItem(Produtos produto, int novaQuantidade){
+    public void alterarQuantidadeItem(Produto produto, int novaQuantidade){
         validarEstadoAberto();
         Optional<ItemPedido> opt = itens.stream()
                 .filter(ip -> ip.getProduto().getId() == produto.getId())
@@ -120,7 +120,7 @@ public class Pedido {
         sb.append(String.format("%sCliente:%s %s | %sDoc:%s %s | %sE-mail:%s %s%n",
                 ConsoleColors.CYAN, ConsoleColors.RESET,
                 cliente.getNome(),
-                ConsoleColors.DIM, ConsoleColors.RESET, cliente.getDocumento(),
+                ConsoleColors.DIM, ConsoleColors.RESET, cliente.getDocumentoMascarado(),
                 ConsoleColors.DIM, ConsoleColors.RESET, cliente.getEmail()
         ));
 

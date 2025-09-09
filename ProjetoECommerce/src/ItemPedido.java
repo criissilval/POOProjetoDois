@@ -1,11 +1,11 @@
 import java.util.Objects;
 
 public class ItemPedido {
-    private final Produtos produto;
+    private final Produto produto;
     private int quantidade;
     private double precoVenda;
 
-    public ItemPedido(Produtos produto, int quantidade, double precoVenda) {
+    public ItemPedido(Produto produto, int quantidade, double precoVenda) {
         if (produto == null){
             throw new IllegalArgumentException("Produto é obrigatório");
         }
@@ -20,7 +20,7 @@ public class ItemPedido {
         this.precoVenda = precoVenda;
     }
     // get e set
-    public Produtos getProduto(){
+    public Produto getProduto(){
         return produto;
     }
     public int getQuantidade() {

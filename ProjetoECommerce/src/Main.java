@@ -15,8 +15,8 @@ public class Main {
 
         // Repositório de produtos
         RepositorioProduto produtoRepositorio = new RepositorioProduto();
-        produtoRepositorio.cadastrar(new Produtos(1, "Notebook", 1000.00));
-        produtoRepositorio.cadastrar(new Produtos(2, "Mouse", 80.00));
+        produtoRepositorio.cadastrar(new Produto(1, "Notebook", 1000.00));
+        produtoRepositorio.cadastrar(new Produto(2, "Mouse", 80.00));
 
         System.out.println("Produtos cadastrados: ");
         produtoRepositorio.listar().forEach(System.out::println);
@@ -53,6 +53,16 @@ public class Main {
             }
         }
     }
+
+    private static String maskDoc(String documento) {
+        if (documento == null || documento.isBlank()) return "***";
+        String digits = documento.replaceAll("\\D", "");
+        if (digits.length() < 5) return "***";
+        String inicio = digits.substring(0, 3);
+        String fim = digits.substring(digits.length() - 2);
+        String meio = "*".repeat(digits.length() - 5);
+        return inicio + meio + fim;
+    }
     private static void menuClientes(Scanner sc, RepositorioCliente clienteRepositorio)throws IllegalAccessException {
         while (true) {
             System.out.println("\n--- Clientes ---");
@@ -83,8 +93,12 @@ public class Main {
                         Cliente novo = new Cliente(nome, doc, email);
                         clienteRepositorio.cadastrar(novo);
                         System.out.println("Cliente cadastrado com sucesso!");
+                    } catch (IllegalStateException dup) {
+                        System.out.println("Conflito ao cadastrar cliente: " + dup.getMessage());
+                    } catch (IllegalArgumentException inv) {
+                        System.out.println("Dados inválidos ao cadastrar cliente: " + inv.getMessage());
                     } catch (Exception e) {
-                        System.out.println("Erro ao cadastrar cliente: " + e.getMessage());
+                        System.out.println("Erro inesperado ao cadastrar cliente.");
                     }
                     break;
                 case "3":
@@ -95,7 +109,7 @@ public class Main {
                             .findFirst()
                             .orElse(null);
                     if (existente == null) {
-                        System.out.println("Cliente não encontrado.");
+                        System.out.println("Cliente não encontrado para documento " + maskDoc(docAt) + ".");
                         break;
                     }
                     System.out.print("Novo nome (enter para manter: " + existente.getNome() + "): ");
@@ -110,8 +124,12 @@ public class Main {
                     try {
                         clienteRepositorio.atualizar(existente);
                         System.out.println("Cliente atualizado com sucesso.");
-                    }  catch (Exception e) {
-                        System.out.println("Erro ao atualizar cliente: " + e.getMessage());
+                    }  catch (IllegalStateException dup) {
+                        System.out.println("Conflito ao atualizar cliente: " + dup.getMessage());
+                    } catch (IllegalArgumentException inv) {
+                        System.out.println("Dados inválidos ao atualizar cliente: " + inv.getMessage());
+                    } catch (Exception e) {
+                        System.out.println("Erro inesperado ao atualizar cliente.");
                     }
                     break;
                 case "0":
@@ -135,7 +153,7 @@ public class Main {
 
             switch (op) {
                 case "1":
-                    List<Produtos> produtos = produtoRepositorio.listar();
+                    List<Produto> produtos = produtoRepositorio.listar();
                     if (produtos.isEmpty()) {
                         System.out.println("Nenhum produto cadastrado.");
                     } else {
@@ -150,18 +168,22 @@ public class Main {
                         String nome = sc.nextLine();
                         System.out.print("Preço: ");
                         double preco = Double.parseDouble(sc.nextLine());
-                        Produtos p = new Produtos(id, nome, preco);
+                        Produto p = new Produto(id, nome, preco);
                         produtoRepositorio.cadastrar(p);
                         System.out.println("Produto cadastrado.");
+                    } catch (IllegalStateException dup) {
+                        System.out.println("Conflito ao cadastrar produto: " + dup.getMessage());
+                    } catch (IllegalArgumentException inv) {
+                        System.out.println("Dados inválidos ao cadastrar produto: " + inv.getMessage());
                     } catch (Exception e) {
-                        System.out.println("Erro ao cadastrar produto: " + e.getMessage());
+                        System.out.println("Erro inesperado ao cadastrar produto.");
                     }
                     break;
                 case "3":
                     try {
                         System.out.print("ID do produto a atualizar: ");
                         int idAt = Integer.parseInt(sc.nextLine());
-                        Produtos existente = produtoRepositorio.listar().stream()
+                        Produto existente = produtoRepositorio.listar().stream()
                                 .filter(p -> p.getId() == idAt)
                                 .findFirst()
                                 .orElse(null);
@@ -181,8 +203,12 @@ public class Main {
                         }
                         produtoRepositorio.atualizar(existente);
                         System.out.println("Produto atualizado.");
+                    } catch (IllegalStateException dup) {
+                        System.out.println("Conflito ao atualizar produto: " + dup.getMessage());
+                    } catch (IllegalArgumentException inv) {
+                        System.out.println("Dados inválidos ao atualizar produto: " + inv.getMessage());
                     } catch (Exception e) {
-                        System.out.println("Erro ao atualizar produto: " + e.getMessage());
+                        System.out.println("Erro inesperado ao atualizar produto.");
                     }
                     break;
                 case "0":
@@ -256,11 +282,11 @@ public class Main {
                 .filter(c -> c.getDocumento().equals(doc))
                 .findFirst()
                 .orElseGet(()->{
-                    System.out.println("Cliente não encontrado.");
+                    System.out.println("Cliente não encontrado para documento " + maskDoc(doc) + ".");
                     return null;
                 });
     }
-    private static Produtos selecionarProdutoPorId(Scanner sc, RepositorioProduto produtoRepositorio) {
+    private static Produto selecionarProdutoPorId(Scanner sc, RepositorioProduto produtoRepositorio) {
         System.out.print("ID do produto: ");
         String idStr = sc.nextLine();
         int id;
@@ -303,7 +329,7 @@ public class Main {
             try {
                 switch (op) {
                     case "1": {
-                        Produtos prod = selecionarProdutoPorId(sc, produtoRepositorio);
+                        Produto prod = selecionarProdutoPorId(sc, produtoRepositorio);
                         if (prod == null) break;
                         System.out.print("Quantidade: ");
                         int qtd = Integer.parseInt(sc.nextLine());
@@ -314,14 +340,14 @@ public class Main {
                         break;
                     }
                     case "2": {
-                        Produtos prod = selecionarProdutoPorId(sc, produtoRepositorio);
+                        Produto prod = selecionarProdutoPorId(sc, produtoRepositorio);
                         if (prod == null) break;
                         pedido.removerItem(prod);
                         System.out.println("Item removido.");
                         break;
                     }
                     case "3": {
-                        Produtos prod = selecionarProdutoPorId(sc, produtoRepositorio);
+                        Produto prod = selecionarProdutoPorId(sc, produtoRepositorio);
                         if (prod == null) break;
                         System.out.print("Nova quantidade: ");
                         int qtd = Integer.parseInt(sc.nextLine());
