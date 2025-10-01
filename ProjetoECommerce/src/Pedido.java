@@ -12,6 +12,10 @@ public class Pedido {
     private StatusPedido statusPedido;
     private StatusPagamento statusPagamento;
     private List<ItemPedido> itens = new ArrayList<>();
+    private CupomDesconto cupomAplicado;
+    private List<RegraDesconto> regrasDesconto;
+    private double valorDesconto;
+
 
     public Pedido(int id, Cliente cliente, Email email) {
         if (cliente == null){throw new IllegalArgumentException("Cliente é obrigatório");}
@@ -23,6 +27,10 @@ public class Pedido {
         this.statusPedido = statusPedido.ABERTO;
         this.statusPagamento = statusPagamento.NENHUM;
         this.itens = new ArrayList<>();
+        this.cupomAplicado = null;
+        this.regrasDesconto = new ArrayList<>();
+        this.valorDesconto = 0.0;
+
     }
 
     // getters
@@ -42,6 +50,17 @@ public class Pedido {
     public List<ItemPedido> getItens(){
         return new ArrayList<>(itens);
     }
+    public double getValorTotal() {
+        double valorBase = itens.stream()
+                .mapToDouble(i -> i.getPrecoVenda() * i.getQuantidade())
+                .sum();
+        return Math.max(0, valorBase - valorDesconto);
+    }
+
+    public CupomDesconto getCupomAplicado() { return cupomAplicado; }
+    public double getValorDesconto() { return valorDesconto; }
+
+
 
     //ação de itens
 
@@ -148,6 +167,47 @@ public class Pedido {
         sb.append(String.format("%s=========================%s%n", ConsoleColors.BRIGHT_BLUE, ConsoleColors.RESET));
         return ConsoleColors.clean(sb.toString());
     }
+
+    public void aplicarCupom(CupomDesconto cupom) {
+        if (this.statusPedido != StatusPedido.ABERTO) {
+            throw new IllegalStateException("Só é possível aplicar cupom em pedidos abertos");
+        }
+        if (!cupom.isValido()) {
+            throw new IllegalStateException("Cupom inválido, expirado ou já utilizado");
+        }
+        this.cupomAplicado = cupom;
+        recalcularValorTotal();
+    }
+
+    public void aplicarRegraDesconto(RegraDesconto regra) {
+        if (this.statusPedido != StatusPedido.ABERTO) {
+            throw new IllegalStateException("Só é possível aplicar regras em pedidos abertos");
+        }
+        this.regrasDesconto.add(regra);
+        recalcularValorTotal();
+    }
+
+    private void recalcularValorTotal() {
+        double valorBase = itens.stream()
+                .mapToDouble(i -> i.getPrecoVenda() * i.getQuantidade())
+                .sum();
+
+        double descontoTotal = 0.0;
+
+        // Aplicar cupom
+        if (cupomAplicado != null && cupomAplicado.isValido()) {
+            descontoTotal += cupomAplicado.calcularDesconto(valorBase);
+        }
+
+        // Aplicar regras de desconto
+        for (RegraDesconto regra : regrasDesconto) {
+            descontoTotal += regra.calcularDesconto(this);
+        }
+
+        this.valorDesconto = descontoTotal;
+    }
+
+
 
 
 }
