@@ -5,7 +5,10 @@ public class Cliente {
     private final String documento;
     private String email;
 
-    public Cliente(String nome, String documento, String email) throws IllegalAccessException {
+    public Cliente(String nome, String documento, String email) {
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("Nome é obrigatório");
+        }
         if (documento == null || documento.isBlank()) {
             throw new IllegalArgumentException("Documento é obrigatório");
         }
@@ -15,7 +18,7 @@ public class Cliente {
             throw new IllegalArgumentException("Documento deve ter exatamente 11 dígitos.");
         }
 
-        this.nome = nome;// Java
+        this.nome = nome.trim();
         this.documento = documento;
         setEmail(email);
     }
@@ -23,7 +26,12 @@ public class Cliente {
     public String getDocumento() {return documento;}
 
     public String getNome() {return nome;}
-    public void setNome(String nome) {this.nome = nome;}
+    public void setNome(String nome) {
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("Nome é obrigatório");
+        }
+        this.nome = nome.trim();
+    }
 
     public String getEmail() {return email;}
     public void setEmail(String email) {

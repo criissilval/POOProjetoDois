@@ -1,7 +1,0 @@
-# .gitattributes
-* text=auto eol=lf
-
-# (opcional) mais explícito por extensão
-*.java text eol=lf
-*.md   text eol=lf
-*.sh   text eol=lf

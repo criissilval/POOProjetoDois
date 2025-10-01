@@ -11,7 +11,7 @@ public class RegraDescontoSimples implements RegraDesconto{
 
     @Override
     public double calcularDesconto(Pedido pedido) {
-        double valorTotal = pedido.getValorTotal();
+        double valorTotal = pedido.getTotal();
         if(tipo == TipoDesconto.FIXO){
             return Math.min(valorDesconto, valorTotal);
         }else {

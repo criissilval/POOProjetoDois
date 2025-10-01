@@ -14,10 +14,18 @@ Sistema de E-Commerce em console para cadastro e gerenciamento de Clientes, Prod
   - Criar pedido para cliente
   - Adicionar/alterar/remover itens enquanto o pedido está ABERTO
   - Preço de venda por item independente do preço do produto
+  - Aplicar cupons de desconto (somente em pedidos ABERTO)
   - Finalizar pedido (valida ao menos 1 item e total > 0) → status de pagamento: AGUARDANDO_PAGAMENTO
   - Pagar pedido (somente quando AGUARDANDO_PAGAMENTO) → pagamento: PAGO, pedido: PAGO
   - Entregar pedido (somente após pagamento) → pedido: FINALIZADO
   - Notificações por e-mail (console) para: aguardando pagamento, pagamento aprovado e pedido entregue
+- Cupons de Desconto
+  - Criar cupons com código único, valor, tipo (FIXO/PERCENTUAL) e data de expiração
+  - Listar todos os cupons e apenas os válidos
+  - Atualizar valor e data de expiração
+  - Expirar cupons manualmente
+  - Validação automática de validade (ativo, não utilizado, não expirado)
+  - Aplicação em pedidos com cálculo automático do desconto
 
 ## Menu da aplicação
 - Clientes
@@ -25,7 +33,9 @@ Sistema de E-Commerce em console para cadastro e gerenciamento de Clientes, Prod
 - Produtos
   - Listar, Cadastrar, Atualizar
 - Pedidos
-  - Listar, Criar, Gerenciar (adicionar/remover/alterar itens, finalizar, pagar, entregar)
+  - Listar, Criar, Gerenciar (adicionar/remover/alterar itens, aplicar cupom, finalizar, pagar, entregar)
+- Cupons
+  - Criar, Listar, Listar válidos, Atualizar, Expirar
 
 ## Regras de negócio implementadas
 - Todo cliente precisa de documento de identificação (11 dígitos)
@@ -36,6 +46,16 @@ Sistema de E-Commerce em console para cadastro e gerenciamento de Clientes, Prod
 - Para finalizar: ao menos 1 item e total > 0; altera status do pagamento para AGUARDANDO_PAGAMENTO e notifica cliente
 - Pagar: somente quando AGUARDANDO_PAGAMENTO; altera pagamento para PAGO, pedido para PAGO e notifica cliente
 - Entregar: somente quando pagamento PAGO; altera pedido para FINALIZADO e notifica cliente
+- **Cupons de Desconto:**
+  - Código do cupom é único e case-insensitive
+  - Valor de desconto deve ser maior que zero
+  - Desconto percentual não pode ser maior que 100%
+  - Data de expiração é obrigatória
+  - Cupom é válido quando: ativo, não utilizado e não expirado
+  - Desconto fixo: aplicado até o valor total do pedido
+  - Desconto percentual: calculado sobre o valor total
+  - Cupons só podem ser aplicados em pedidos ABERTO
+  - Cupons podem ser expirados manualmente
 
 ## Validações, Unicidade e Privacidade (LGPD)
 - Cliente
@@ -50,15 +70,17 @@ Sistema de E-Commerce em console para cadastro e gerenciamento de Clientes, Prod
   - Preço de venda > 0
 
 ## Arquitetura e organização
-- Entidades: `Cliente`, `Produto`, `Pedido`, `ItemPedido`
-- Catálogos/Repos: `RepositorioBase<T>`, `RepositorioCliente`, `RepositorioProduto`, `RepositorioPedido`, `IRepositorio<T>`
-- Domínio de regras: `StatusPedido`, `StatusPagamento`, `Email`
+- Entidades: `Cliente`, `Produto`, `Pedido`, `ItemPedido`, `CupomDesconto`
+- Catálogos/Repos: `RepositorioBase<T>`, `RepositorioCliente`, `RepositorioProduto`, `RepositorioPedido`, `RepositorioCupom`, `IRepositorio<T>`
+- Domínio de regras: `StatusPedido`, `StatusPagamento`, `TipoDesconto`, `Email`
 - UI (console): `Main`
 
 Pontos de design:
 - Repositórios em memória com herança (`RepositorioBase<T>`) e interface (`IRepositorio<T>`) para polimorfismo
 - Encapsulamento e validações nas entidades (ex.: `Cliente#setEmail(...)` valida e normaliza; `Cliente#getDocumentoMascarado()` aplica LGPD)
 - `Pedido` controla regras de estado e operações de itens, total e transições com notificações
+- `CupomDesconto` implementa validação automática de validade e cálculo de desconto
+- `RepositorioCupom` estende `RepositorioBase` com métodos específicos para busca por código e listagem de cupons válidos
 
 ## Guia passo a passo (exemplos do menu)
 
@@ -70,6 +92,7 @@ Pontos de design:
 1) Clientes
 2) Produtos
 3) Pedidos
+4) Cupons
 0) Sair
 Escolha uma opção: 1
 
@@ -130,7 +153,12 @@ Cliente | Nome: Carlos Silva | Documento: 123******10 | E-mail: carlos.silva@ema
 - Cadastrar produto válido
 ```text
 ===== ADA TECH - E-COMMERCE =====
-Opção: 2
+1) Clientes
+2) Produtos
+3) Pedidos
+4) Cupons
+0) Sair
+Escolha uma opção: 2
 
 --- Produtos ---
 1) Listar
@@ -176,12 +204,83 @@ Produto #2 | Nome: Mouse | Preço: R$ 80,00
 Produto #3 | Nome: Teclado USB | Preço: R$ 180,00
 ```
 
-### 3) Pedidos
+### 3) Cupons de Desconto
+
+- Criar cupom com desconto fixo
+```text
+===== ADA TECH - E-COMMERCE =====
+1) Clientes
+2) Produtos
+3) Pedidos
+4) Cupons
+0) Sair
+Escolha uma opção: 4
+
+=== GERENCIAMENTO DE CUPONS ===
+1) Criar cupom
+2) Listar cupons
+3) Listar cupons válidos
+4) Atualizar cupom
+5) Expirar cupom
+0) Voltar
+Escolha: 1
+Código do cupom: DESCONTO10
+Tipo de desconto (1-Fixo / 2-Percentual): 1
+Valor do desconto: 50
+Data de expiração (AAAA-MM-DD): 2024-12-31
+✓ Cupom criado com sucesso!
+```
+
+- Criar cupom com desconto percentual
+```text
+=== GERENCIAMENTO DE CUPONS ===
+Escolha: 1
+Código do cupom: BLACKFRIDAY
+Tipo de desconto (1-Fixo / 2-Percentual): 2
+Valor do desconto: 15
+Data de expiração (AAAA-MM-DD): 2024-12-31
+✓ Cupom criado com sucesso!
+```
+
+- Listar cupons válidos
+```text
+=== GERENCIAMENTO DE CUPONS ===
+Escolha: 3
+
+=== CUPONS VÁLIDOS ===
+Cupom: DESCONTO10 | Desconto: R$ 50.0 | Expira: 2024-12-31 | Status: ✓ VÁLIDO
+Cupom: BLACKFRIDAY | Desconto: 15.0% | Expira: 2024-12-31 | Status: ✓ VÁLIDO
+```
+
+- Atualizar cupom
+```text
+=== GERENCIAMENTO DE CUPONS ===
+Escolha: 4
+Código do cupom a atualizar: DESCONTO10
+Novo valor de desconto (Enter para manter 50.0): 75
+Nova data de expiração (AAAA-MM-DD, Enter para manter): 2024-11-30
+✓ Cupom atualizado com sucesso!
+```
+
+- Expirar cupom
+```text
+=== GERENCIAMENTO DE CUPONS ===
+Escolha: 5
+Código do cupom a expirar: BLACKFRIDAY
+✓ Cupom expirado com sucesso!
+```
+
+### 4) Pedidos
 
 - Criar pedido
 ```text
 ===== ADA TECH - E-COMMERCE =====
-Opção: 3
+1) Clientes
+2) Produtos
+3) Pedidos
+4) Cupons
+0) Sair
+Escolha uma opção: 3
 
 --- Pedidos ---
 1) Listar pedidos
@@ -194,7 +293,7 @@ Digite o documento do cliente:
 Pedido criado com id: 1
 ```
 
-- Gerenciar pedido: adicionar item, alterar quantidade, remover, finalizar, pagar, entregar
+- Gerenciar pedido: adicionar item, alterar quantidade, remover, aplicar cupom, finalizar, pagar, entregar
 ```text
 --- Pedidos ---
 Opção: 3
@@ -212,9 +311,10 @@ Ações:
 1) Adicionar item
 2) Remover item
 3) Alterar quantidade de item
-4) Finalizar (aguardar pagamento)
-5) Pagar
-6) Entregar
+4) Aplicar cupom de desconto
+5) Finalizar (aguardar pagamento)
+6) Pagar
+7) Entregar
 0) Voltar
 Opção: 1
 ID do produto:
@@ -226,6 +326,25 @@ Preço de venda (por item):
 Item adicionado/atualizado.
 ```
 
+- Aplicar cupom de desconto
+```text
+Opção: 4
+Código do cupom: DESCONTO10
+✓ Cupom aplicado com sucesso!
+```
+
+- Visualizar pedido com cupom aplicado
+```text
+--- Pedido #1 ---
+Cliente: Cliente | Nome: Carlos Silva | Doc: 123******10 | E-mail: carlos.silva@email.com
+Status Pedido: ABERTO | Status Pagamento: NENHUM
+Itens:
+  - ItemPedido{produto=Produto{id=2, nome='Mouse', preco=80.0}, quantidade=2, precoVenda=75.0, subTotal=150.0}
+Cupom aplicado: DESCONTO10
+Desconto: R$ 50.00
+Total: 100.0
+```
+
 - Tentar finalizar sem itens ou total <= 0
 ```text
 Opção: 4
@@ -234,7 +353,7 @@ Erro: Pedido precisa ter ao menos um item
 
 - Finalizar (válido)
 ```text
-Opção: 4
+Opção: 5
 Pedido finalizado. Status agora: AGUARDANDO_PAGAMENTO
 Email para carlos.silva@email.com:
 Seu pedido #1 está aguardando pagamento.
@@ -242,7 +361,7 @@ Seu pedido #1 está aguardando pagamento.
 
 - Pagar
 ```text
-Opção: 5
+Opção: 6
 Pagamento aprovado. Status: PAGO
 E-mail para carlos.silva@email.com:
 Pagamento do pedido #1 aprovado.
@@ -250,7 +369,7 @@ Pagamento do pedido #1 aprovado.
 
 - Entregar
 ```text
-Opção: 6
+Opção: 7
 Pedido entregue. Status: FINALIZADO
 E-mail para carlos.silva@email.com:
 Pedido #1 foi entregue. Obrigado!
@@ -268,7 +387,7 @@ Preço de venda (por item):
 Erro: Apenas pedidos ABERTO podem ser alterados.
 ```
 
-### 4) Erros comuns e mensagens esperadas
+### 5) Erros comuns e mensagens esperadas
 
 - Cliente não encontrado (documento mascarado na mensagem)
 ```text
@@ -296,6 +415,27 @@ ID inválido.
 Quantidade:
 0
 Erro: Quantidade deve ser maior que zero
+```
+
+- Cupom não encontrado
+```text
+Opção: 4
+Código do cupom: INEXISTENTE
+✗ Cupom não encontrado.
+```
+
+- Cupom inválido ou expirado
+```text
+Opção: 4
+Código do cupom: EXPIRADO
+Erro: Cupom inválido, expirado ou já utilizado
+```
+
+- Tentar aplicar cupom em pedido não aberto
+```text
+Opção: 4
+Código do cupom: DESCONTO10
+Erro: Só é possível aplicar cupom em pedidos abertos
 ```
 
 ---
